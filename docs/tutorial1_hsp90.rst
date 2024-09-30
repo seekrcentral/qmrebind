@@ -166,11 +166,12 @@ inhibitor itself has the resname BSM, so enter the following command:
 
 .. code-block:: bash
 
-  python ~/qmrebind/qmrebind/run_qmrebind_amber.py hsp90_compound3.pdb hsp90_compound3.parm7 -L BSM -Q -1
+  python ~/qmrebind/qmrebind/run_qmrebind_amber.py hsp90_compound3.pdb hsp90_compound3.parm7 -L BSM -c 5.0 -m MP2 -b "cc-pVTZ" -n 4
 
-Notice that we had to specify that the QM2 region has a charge of -1 using the
-'-Q' argument. This is because of a deprotonated aspartate close to the 
-inhibitor in the crystal structure.
+This specifies a QM2 region cutoff of 5.0 Angstroms (any residue with any atoms 
+within 5 Angstroms of any ligand atom will be added to the QM2 region). It also
+specifies that the MP2 method will be used, and the cc-pVTZ basis set, and
+4 CPU cores will be used to accelerate the calculation.
 
 References
 ----------

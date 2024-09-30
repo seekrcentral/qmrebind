@@ -158,6 +158,7 @@ def get_ff_charges(forcefield_file, ff_charges_file, input_pdb):
             to_begin = int(i)
             to_end = int(i) + lines_to_select
     assert to_begin is not None, "CHARGE flag not found: invalid parm7 file?"
+    print("to_begin:", to_begin, "to_end:", to_end)
     charges = lines[to_begin + 2 : to_end + 2]
     charge_list = []
     for charge in charges:
@@ -331,6 +332,7 @@ def get_qmrebind_parm_solvent(input_pdb, forcefield_file, ff_charges_file):
     )
     list_ff_charges_file_before_qmmm \
         = list(np.loadtxt(ff_charges_file_before_qmmm))
+    print("ff_charges_file_after_qmmm:", ff_charges_file_after_qmmm)
     list_ff_charges_file_after_qmmm \
         = list(np.loadtxt(ff_charges_file_after_qmmm))
     for i, file_after in enumerate(list_ff_charges_file_after_qmmm):

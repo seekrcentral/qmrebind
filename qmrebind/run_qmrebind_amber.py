@@ -161,8 +161,10 @@ def run_qmrebind_amber(
         XTB_add_inputs=XTB_add_inputs,
     )
     """
+    #base.run_check(check.check_ligand_same_molecule(
+    #    defaults.orca_pdb, qm_region_atom_indices), skip_checks)
     base.run_check(check.check_ligand_same_molecule(
-        defaults.orca_pdb, qm_region_atom_indices), skip_checks)
+        input_pdb, forcefield_file, qm_region_atom_indices), skip_checks)
 
     orca.run_orca_qmmm(
         orca_dir_pwd=orca_dir_pwd,
