@@ -5,12 +5,17 @@ Run QMrebind for each of a set of specified anchors within a SEEKR
 filetree.
 """
 import os
+import glob
 import argparse
+from shutil import copyfile
 
 import seekr2.modules.common_base as seekr_base
 
 import qmrebind.qmrebind_base as base
 import qmrebind.run_qmrebind_amber as run_qmrebind_amber
+
+QMREBIND_MODEL_GLOB = "model_pre_qmrebind_*.xml"
+QMREBIND_MODEL_BASE = "model_pre_qmrebind_{}.xml"
 
 def parse_anchor_list(anchor_str):
     if anchor_str == "":
@@ -33,6 +38,43 @@ def get_anchor_prmtop_filename(anchor):
         
     if anchor.charmm_params is not None:
         raise Exception("CHARMM input not yet implemented in QMrebind.")
+
+def set_anchor_prmtop_filename(anchor, filename):
+    if anchor.amber_params is not None:
+        anchor.amber_params.prmtop_filename = filename
+    
+    return
+
+def save_new_model(model, save_old_model=True):
+    """
+    At the end of a QMrebind calculation, generate a new model file. The
+    old model file(s) will be renamed with a numerical index.
+    
+    
+    Parameters
+    ----------
+    model : Model()
+        The unfilled Seekr2 Model object.
+        
+    """
+    model_path = os.path.join(model.anchor_rootdir, "model.xml")
+    if os.path.exists(model_path) and save_old_model:
+        # This is expected, because this old model was loaded
+        hidr_model_glob = os.path.join(model.anchor_rootdir, 
+                                       QMREBIND_MODEL_GLOB)
+        num_globs = len(glob.glob(hidr_model_glob))
+        new_pre_hidr_model_filename = QMREBIND_MODEL_BASE.format(num_globs)
+        new_pre_hidr_model_path = os.path.join(model.anchor_rootdir, 
+                                               new_pre_hidr_model_filename)
+        print("Renaming model.xml to {}".format(new_pre_hidr_model_filename))
+        copyfile(model_path, new_pre_hidr_model_path)
+        
+    print("Saving new model.xml")
+    old_rootdir = model.anchor_rootdir
+    model.anchor_rootdir = "."
+    seekr_base.save_model(model, model_path)
+    model.anchor_rootdir = old_rootdir
+    return
 
 def run_qmrebind_seekr_anchors(
         anchor_list, model, ligand_indices=None, ligand_resname="",
@@ -68,7 +110,7 @@ def run_qmrebind_seekr_anchors(
         assert forcefield_file is not None, \
             f"Anchor {anchor_index} has empty Prmtop file."
         
-        run_qmrebind_amber.run_qmrebind_amber(
+        new_forcefield_filename = run_qmrebind_amber.run_qmrebind_amber(
             input_pdb, forcefield_file, ligand_indices, ligand_resname,
             cut_off_distance=cut_off_distance, nprocs=nprocs, 
             maxiter=max_iterations, qm_method=qm_method, 
@@ -78,8 +120,10 @@ def run_qmrebind_seekr_anchors(
             qm2_mult=qm2_mult, orca_dir_pwd=orca_path, work_dir=None,
             skip_checks=skip_checks)
         
+        set_anchor_prmtop_filename(anchor, new_forcefield_filename)
+        
     os.chdir(starting_dir)
-    
+    return
 
 if __name__ == "__main__":
     argparser = argparse.ArgumentParser(description=__doc__)
@@ -206,3 +250,5 @@ if __name__ == "__main__":
         qm_mult=qm_multiplicity, qm2_method=qm2_method, 
         qm2_charge_scheme=qm2_charge_scheme, qm2_charge=qm2_charge, 
         qm2_mult=qm2_mult, orca_dir_pwd=orca_path, skip_checks=skip_checks)
+    
+    save_new_model(model)
