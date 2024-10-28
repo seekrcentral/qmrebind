@@ -50,13 +50,19 @@ def prepare_orca_pdb(
     ppdb.df["ATOM"].loc[0:, "occupancy"] = 0.00
     for ligand_index in ligand_indices:
         ppdb.df["ATOM"].loc[ligand_index, "occupancy"] = 1.00
+        if ppdb.df["ATOM"].loc[ligand_index, "atom_name"].startswith("Cl"):
+            ppdb.df["ATOM"].loc[ligand_index, "element_symbol"] = "Cl"
+        
+        if ppdb.df["ATOM"].loc[ligand_index, "atom_name"].startswith("CL"):
+            ppdb.df["ATOM"].loc[ligand_index, "element_symbol"] = "Cl"
+        
     receptor_residues, receptor_indices = base.get_indices_qm2_region(
         ligand_pdb=ligand_pdb, input_pdb=input_pdb, 
         cut_off_distance=cut_off_distance, ligand_indices=ligand_indices
     )
     for receptor_index in receptor_indices:
         ppdb.df["ATOM"].loc[receptor_index, "occupancy"] = 2.00
-    print("Writing file:", orca_pdb)
+    
     ppdb.to_pdb(path=orca_pdb, records=None, gz=False, append_newline=True)
     return
 
